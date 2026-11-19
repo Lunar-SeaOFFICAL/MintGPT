@@ -6,83 +6,91 @@
 <title>MintGPT</title>
 <style>
 :root{
-  --bg-main:#212121;
-  --bg-side:#171717;
-  --bg-input:#2f2f2f;
-  --bg-hover:#2a2a2a;
-  --border:#363636;
-  --text:#ececec;
-  --muted:#9b9b9b;
-  --mint:#10a37f;
-  --mint-soft:rgba(16,163,127,.15);
+  --bg-main:#101a17;
+  --bg-side:#0c1411;
+  --bg-input:#182722;
+  --bg-hover:#1f332c;
+  --bg-guest:#1d352c;
+  --border:#284237;
+  --text:#e1f4e9;
+  --muted:#8aa899;
+  --mint:#43d3a0;
+  --mint-ink:#0e3325;
+  --mint-soft:rgba(67,211,160,.16);
 }
 body.light{
-  --bg-main:#ffffff;
-  --bg-side:#f9f9f9;
-  --bg-input:#f4f4f4;
-  --bg-hover:#ececec;
-  --border:#e5e5e5;
-  --text:#0d0d0d;
-  --muted:#666666;
+  --bg-main:#fbfffc;
+  --bg-side:#f0faf4;
+  --bg-input:#ffffff;
+  --bg-hover:#e2f5ea;
+  --bg-guest:#e6f7ed;
+  --border:#d2ebe0;
+  --text:#173d30;
+  --muted:#6d8c7f;
+  --mint:#2bc48d;
+  --mint-ink:#ffffff;
+  --mint-soft:rgba(43,196,141,.15);
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg-main);color:var(--text);font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;height:100vh;overflow:hidden}
+body{margin:0;background:var(--bg-main);color:var(--text);font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;height:100vh;overflow:hidden;transition:background .2s,color .2s}
 .layout{display:grid;grid-template-columns:260px 1fr;height:100vh}
 
 /* Sidebar */
 .sidebar{background:var(--bg-side);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:12px}
 .side-top{display:flex;gap:8px;margin-bottom:14px}
-.new-chat{flex:1;display:flex;align-items:center;gap:10px;background:transparent;border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px;font:inherit;font-weight:500;cursor:pointer;text-align:left}
-.new-chat:hover{background:var(--bg-hover)}
-.side-label{font-size:11px;font-weight:600;color:var(--muted);padding:8px 10px 4px;text-transform:uppercase;letter-spacing:.5px}
-#history{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
-#history button{background:transparent;border:0;color:var(--text);padding:9px 10px;border-radius:8px;text-align:left;font:inherit;font-size:13.5px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.new-chat{flex:1;display:flex;align-items:center;gap:10px;background:var(--mint-soft);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:11px;font:inherit;font-weight:600;cursor:pointer;text-align:left}
+.new-chat:hover{border-color:var(--mint)}
+.side-label{font-size:11px;font-weight:700;color:var(--muted);padding:8px 10px 4px;text-transform:uppercase;letter-spacing:.6px}
+#history{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+#history button{background:transparent;border:0;color:var(--text);padding:9px 10px;border-radius:9px;text-align:left;font:inherit;font-size:13.5px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #history button:hover{background:var(--bg-hover)}
-#history button.active{background:var(--bg-hover);font-weight:600}
-.side-footer{border-top:1px solid var(--border);padding-top:10px;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--muted)}
+#history button.active{background:var(--bg-hover);color:var(--mint);font-weight:650}
+.side-footer{border-top:1px solid var(--border);padding-top:10px;display:flex;align-items:center;justify-content:space-between;font-size:12.5px;color:var(--muted)}
 
 /* Main Area */
 .main{display:flex;flex-direction:column;height:100vh;min-width:0;position:relative}
-.topbar{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;flex-shrink:0}
-.model-pill{display:flex;align-items:center;gap:8px;font-weight:600;font-size:16px;padding:6px 12px;border-radius:10px;cursor:pointer;user-select:none}
+.topbar{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 18px;flex-shrink:0}
+.model-pill{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px;padding:6px 12px;border-radius:10px;cursor:pointer;user-select:none}
 .model-pill:hover{background:var(--bg-hover)}
-.model-pill span.tag{font-size:11px;background:var(--mint-soft);color:var(--mint);padding:2px 7px;border-radius:99px;font-weight:700}
+.model-pill span.tag{font-size:11px;background:var(--mint-soft);color:var(--mint);padding:2px 8px;border-radius:99px;font-weight:750;border:1px solid rgba(67,211,160,.3)}
 .top-actions{display:flex;align-items:center;gap:8px}
-.icon-btn{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer}
-.icon-btn:hover{background:var(--bg-hover)}
-.status-dot{font-size:12px;color:var(--muted);margin-right:4px}
+.icon-btn{background:var(--bg-input);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:6px 10px;font-size:13px;cursor:pointer}
+.icon-btn:hover{border-color:var(--mint)}
+.status-dot{font-size:12px;color:var(--muted);margin-right:4px;font-weight:600}
 
 /* Chat Feed */
-.scroll-area{flex:1;overflow-y:auto;display:flex;flex-direction:column;padding:10px 20px 20px}
+.scroll-area{flex:1;overflow-y:auto;display:flex;flex-direction:column;padding:14px 20px 20px}
 .welcome{margin:auto;text-align:center;max-width:640px;width:100%;padding:20px 0}
-.avatar-lg{width:54px;height:54px;border-radius:50%;margin:0 auto 14px;overflow:hidden;border:2px solid var(--mint);background:#16382c;display:grid;place-items:center;font-weight:800;color:var(--mint);font-size:22px}
+.avatar-lg{width:64px;height:64px;border-radius:20px;margin:0 auto 14px;overflow:hidden;border:2px solid var(--mint);background:#16382c;display:grid;place-items:center;font-weight:800;color:var(--mint);font-size:24px;box-shadow:0 0 24px rgba(67,211,160,.2)}
 .avatar-lg img,.avatar-sm img{width:100%;height:100%;object-fit:cover;display:block}
-.welcome h2{margin:0 0 24px;font-size:26px;font-weight:600;letter-spacing:-.5px}
+.welcome h2{margin:0 0 6px;font-size:28px;font-weight:700;letter-spacing:-.6px}
+.welcome .sub{color:var(--muted);margin:0 0 24px;font-size:14px}
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.card{background:transparent;border:1px solid var(--border);border-radius:14px;padding:13px 15px;text-align:left;color:var(--text);cursor:pointer;font:inherit;transition:background .15s}
-.card:hover{background:var(--bg-hover)}
-.card b{display:block;font-size:13.5px;margin-bottom:2px}
+.card{background:var(--bg-input);border:1px solid var(--border);border-radius:14px;padding:13px 15px;text-align:left;color:var(--text);cursor:pointer;font:inherit;transition:border-color .15s,background .15s}
+.card:hover{border-color:var(--mint);background:var(--bg-hover)}
+.card b{display:block;font-size:13.5px;margin-bottom:2px;color:var(--mint)}
 .card span{font-size:12px;color:var(--muted)}
 
-#messages{width:min(760px,100%);margin:0 auto;display:flex;flex-direction:column;gap:22px;padding-top:10px}
-.msg{display:flex;gap:14px;align-items:flex-start;line-height:1.6}
+#messages{width:min(760px,100%);margin:0 auto;display:flex;flex-direction:column;gap:20px;padding-top:10px}
+.msg{display:flex;gap:13px;align-items:flex-start;line-height:1.6}
 .msg.guest{justify-content:flex-end}
-.msg.guest .bubble{background:var(--bg-input);padding:11px 16px;border-radius:20px;max-width:75%;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.guest .bubble{background:var(--bg-guest);border:1px solid var(--border);padding:11px 16px;border-radius:18px 18px 4px 18px;max-width:75%;white-space:pre-wrap;overflow-wrap:anywhere}
 .msg.ai .bubble{flex:1;padding-top:3px;white-space:pre-wrap;overflow-wrap:anywhere}
 .msg.system{justify-content:center}
 .msg.system .bubble{font-size:12px;color:var(--muted);background:var(--bg-side);padding:5px 12px;border-radius:99px;border:1px solid var(--border)}
-.avatar-sm{width:30px;height:30px;border-radius:50%;flex-shrink:0;overflow:hidden;border:1px solid var(--mint);background:#16382c;display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--mint)}
+.avatar-sm{width:32px;height:32px;border-radius:10px;flex-shrink:0;overflow:hidden;border:1.5px solid var(--mint);background:#16382c;display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--mint)}
 
 /* Composer */
 .composer-area{width:min(760px,100%);margin:0 auto;padding:0 16px 14px;flex-shrink:0}
 .wizard-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-.wizard-bar button{background:var(--bg-side);border:1px solid var(--border);color:var(--text);font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer}
-.wizard-bar button:hover{border-color:var(--mint)}
-#typing{min-height:18px;font-size:12px;color:var(--mint);margin-bottom:5px;padding-left:6px;font-weight:500}
-.input-box{background:var(--bg-input);border:1px solid var(--border);border-radius:24px;padding:8px 10px 8px 18px;display:flex;align-items:flex-end;gap:10px}
+.wizard-bar button{background:var(--bg-input);border:1px solid var(--border);color:var(--text);font-size:12px;padding:5px 10px;border-radius:9px;cursor:pointer}
+.wizard-bar button:hover{border-color:var(--mint);color:var(--mint)}
+#typing{min-height:18px;font-size:12px;color:var(--mint);margin-bottom:5px;padding-left:6px;font-weight:600}
+.input-box{background:var(--bg-input);border:1px solid var(--border);border-radius:22px;padding:8px 10px 8px 18px;display:flex;align-items:flex-end;gap:10px;transition:border-color .15s}
+.input-box:focus-within{border-color:var(--mint)}
 textarea{flex:1;background:transparent;border:0;outline:0;color:var(--text);font:inherit;resize:none;min-height:24px;max-height:150px;padding:4px 0;line-height:1.5}
-.send-btn{width:34px;height:34px;border-radius:50%;border:0;background:var(--mint);color:#fff;font-size:17px;font-weight:700;cursor:pointer;display:grid;place-items:center;flex-shrink:0}
-.send-btn:hover{opacity:.9}
+.send-btn{width:34px;height:34px;border-radius:50%;border:0;background:var(--mint);color:var(--mint-ink);font-size:17px;font-weight:800;cursor:pointer;display:grid;place-items:center;flex-shrink:0}
+.send-btn:hover{filter:brightness(1.07)}
 .disclaimer{text-align:center;font-size:11.5px;color:var(--muted);margin-top:8px}
 
 @media(max-width:720px){
@@ -98,14 +106,14 @@ textarea{flex:1;background:transparent;border:0;outline:0;color:var(--text);font
   <aside class="sidebar">
     <div class="side-top">
       <button type="button" class="new-chat" onclick="newChat()">
-        <span style="color:var(--mint);font-weight:800">✦</span> New chat
+        <span style="color:var(--mint);font-weight:800">✦</span> New mint chat
       </button>
     </div>
-    <div class="side-label" id="sideTitle">Today</div>
+    <div class="side-label" id="sideTitle">Recent Chats</div>
     <div id="history"></div>
     <div class="side-footer">
-      <span>MintGPT Plus</span>
-      <span style="color:var(--mint);font-weight:600">v4o-mint</span>
+      <span>A little more refreshing.</span>
+      <span style="color:var(--mint);font-weight:700">MINT</span>
     </div>
   </aside>
 
@@ -113,14 +121,14 @@ textarea{flex:1;background:transparent;border:0;outline:0;color:var(--text);font
     <header class="topbar">
       <div class="model-pill" onclick="cycleModel()">
         <span id="modelName">MintGPT 4o</span>
-        <span class="tag" id="roleTag">MINT</span>
+        <span class="tag" id="roleTag">MINT MODE</span>
         <span style="color:var(--muted);font-size:12px">▾</span>
       </div>
       <div class="top-actions">
         <span class="status-dot" id="statusLabel">○ Connecting...</span>
         <button type="button" class="icon-btn" id="onlineBtn" onclick="toggleOnline()" style="display:none">Go offline</button>
         <button type="button" class="icon-btn" id="soundBtn" onclick="toggleSound()" title="Notification Sound">🔔</button>
-        <button type="button" class="icon-btn" onclick="toggleTheme()" title="Switch Theme">☀</button>
+        <button type="button" class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="Switch Theme">☀</button>
         <button type="button" class="icon-btn" id="logoutBtn" onclick="logout()" style="display:none">Log out</button>
       </div>
     </header>
@@ -128,22 +136,23 @@ textarea{flex:1;background:transparent;border:0;outline:0;color:var(--text);font
     <div class="scroll-area" id="scrollArea">
       <div class="welcome" id="welcome">
         <div class="avatar-lg"><img src="avatar.png" alt="M" onerror="this.parentNode.textContent='M'"></div>
-        <h2>What can I help with?</h2>
+        <h2>What's on your mind?</h2>
+        <p class="sub">Same helpful AI energy. A fresh minty look.</p>
         <div class="cards">
           <button type="button" class="card" onclick="quickAsk('Help me debug a Minecraft server plugin')">
-            <b>Debug code</b>
+            <b>✦ Debug code</b>
             <span>Fix a Minecraft plugin or datapack</span>
           </button>
           <button type="button" class="card" onclick="quickAsk('Give me 3 creative YouTube video ideas')">
-            <b>Brainstorm ideas</b>
+            <b>✦ Brainstorm ideas</b>
             <span>Fresh concepts for my next upload</span>
           </button>
           <button type="button" class="card" onclick="quickAsk('Explain how quantum computers work simply')">
-            <b>Explain a concept</b>
+            <b>✦ Explain a concept</b>
             <span>Break down complex topics fast</span>
           </button>
           <button type="button" class="card" onclick="quickAsk('Write a short funny story about a green slime')">
-            <b>Write a story</b>
+            <b>✦ Write a story</b>
             <span>Creative writing & character lore</span>
           </button>
         </div>
@@ -161,28 +170,3 @@ textarea{flex:1;background:transparent;border:0;outline:0;color:var(--text);font
       </div>
       <div id="typing"></div>
       <form class="input-box" onsubmit="handleSend(event)">
-        <textarea id="prompt" rows="1" placeholder="Message MintGPT" onkeydown="onKey(event)" oninput="resizeBox(this)"></textarea>
-        <button type="submit" class="send-btn">↑</button>
-      </form>
-      <div class="disclaimer">MintGPT can make mistakes. Check important info.</div>
-    </div>
-  </main>
-</div>
-
-<script src="https://unpkg.com"></script>
-<script>
-const HOST_ID = "mintgpt-wizard-brain-7xq9-42";
-const isWizard = document.cookie.indexOf("mintgpt_wizard=true") !== -1;
-
-let isOnline = true;
-let soundOn = true;
-let peer = null;
-let connections = {};
-let hostConn = null;
-let activeGuestId = null;
-let chats = {};
-let models = ["MintGPT 4o", "MintGPT o1-preview", "MintGPT 4o-mini"];
-let modelIdx = 0;
-
-function el(id) { return document.getElementById(id); }
-
