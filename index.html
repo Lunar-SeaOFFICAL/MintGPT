@@ -155,17 +155,11 @@ textarea{display:block;flex:1 1 auto;width:0;min-width:0;resize:none;border:0;ou
           <button type="button" data-quick="Here is what I found based on your request:">⚡ "Here is what I found..."</button>
           <button type="button" data-quick="Could you give me a few more details?">⚡ Ask for details</button>
           <button type="button" id="triggerThinkBtn">⏳ Trigger Thinking Dots</button>
+          <button type="button" id="pickAvatarBtn">🖼️ Set AI Icon</button>
+          <input type="file" id="avatarFile" accept="image/*" style="display:none">
         </div>
         <div id="typing"></div>
         <form id="chat">
           <textarea id="prompt" rows="1" placeholder="Message MintGPT..."></textarea>
           <button id="send" type="submit">↑</button>
         </form>
-        <div class="hint">MintGPT can make mistakes. Verify important information.</div>
-      </div>
-    </section>
-  </main>
-</div>
-
-<script>
-const PASSCODE = "Mint-7XQ9-Violet#42";
