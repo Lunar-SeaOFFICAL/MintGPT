@@ -95,21 +95,21 @@ textarea{display:block;flex:1 1 auto;width:0;min-width:0;resize:none;border:0;ou
 
 <div id="gate">
   <div class="login">
-    <div class="avatar ai-avatar"></div>
+    <div class="avatar ai-avatar"><img src="avatar.png" alt="MintGPT" onerror="this.parentNode.textContent='M'"></div>
     <h1>MintGPT</h1>
     <p>Enter the secret passcode to unlock.</p>
-    <form id="login">
+    <form id="login" onsubmit="tryLogin(event)">
       <input id="code" type="password" placeholder="Secret passcode" autocomplete="off">
       <button id="unlock" type="submit">Enter MintGPT</button>
     </form>
-    <button type="button" id="guestEntry" style="width:100%;margin-top:9px;background:#e9f8ef;color:#123e2e">Continue as Guest</button>
+    <button type="button" id="guestEntry" onclick="enterGuest()" style="width:100%;margin-top:9px;background:#e9f8ef;color:#123e2e">Continue as Guest</button>
     <div id="error"></div>
   </div>
 </div>
 
 <div class="app">
   <aside class="side">
-    <div class="brand"><div class="avatar ai-avatar"></div>MintGPT</div>
+    <div class="brand"><div class="avatar ai-avatar"><img src="avatar.png" alt="MintGPT" onerror="this.parentNode.textContent='M'"></div>MintGPT</div>
     <button class="new" id="new">＋ &nbsp; New chat</button>
     <div>
       <div class="small" id="sideListTitle">Saved conversations</div>
@@ -126,7 +126,7 @@ textarea{display:block;flex:1 1 auto;width:0;min-width:0;resize:none;border:0;ou
         <button type="button" id="themeToggle" title="Toggle dark mode" style="background:transparent;border:1px solid var(--line);color:var(--ink);padding:7px 9px;font-size:15px">☾</button>
         <label id="ownerStatusLabel" style="font-size:12px;color:#8aa397">○ Connecting...</label>
         <button type="button" id="availability" style="display:none;font-size:12px;padding:8px 10px">Go offline</button>
-        <div class="avatar ai-avatar"></div>
+        <div class="avatar ai-avatar"><img src="avatar.png" alt="MintGPT" onerror="this.parentNode.textContent='M'"></div>
       </div>
     </header>
 
@@ -136,7 +136,7 @@ textarea{display:block;flex:1 1 auto;width:0;min-width:0;resize:none;border:0;ou
       </div>
 
       <div class="welcome" id="welcome">
-        <div class="avatar ai-avatar"></div>
+        <div class="avatar ai-avatar"><img src="avatar.png" alt="MintGPT" onerror="this.parentNode.textContent='M'"></div>
         <h2>What's on your mind?</h2>
         <p>Same helpful AI energy. A fresh minty look.</p>
         <div class="suggestions" id="suggestions">
@@ -156,10 +156,3 @@ textarea{display:block;flex:1 1 auto;width:0;min-width:0;resize:none;border:0;ou
           <button type="button" data-quick="Could you give me a few more details?">⚡ Ask for details</button>
           <button type="button" id="triggerThinkBtn">⏳ Trigger Thinking Dots</button>
           <button type="button" id="pickAvatarBtn">🖼️ Set AI Icon</button>
-          <input type="file" id="avatarFile" accept="image/*" style="display:none">
-        </div>
-        <div id="typing"></div>
-        <form id="chat">
-          <textarea id="prompt" rows="1" placeholder="Message MintGPT..."></textarea>
-          <button id="send" type="submit">↑</button>
-        </form>
