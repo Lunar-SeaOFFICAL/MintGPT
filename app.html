@@ -9,14 +9,14 @@ body.light{--bg:#fbfffc;--side:#f0faf4;--card:#fff;--hov:#e2f5ea;--bd:#d2ebe0;--
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px system-ui,sans-serif;height:100vh;overflow:hidden}
 .app{display:grid;grid-template-columns:250px 1fr;height:100vh}
 .side{background:var(--side);border-right:1px solid var(--bd);padding:12px;display:flex;flex-direction:column;gap:8px}
-button{cursor:pointer;font:inherit;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:8px 12px}
+button{cursor:pointer;font:inherit;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:7px 11px}
 button:hover{border-color:var(--mint)}
 .new{background:rgba(67,211,160,.15);font-weight:600;text-align:left}
 #hist{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
 #hist button{border:0;background:transparent;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #hist button.on{background:var(--hov);color:var(--mint);font-weight:700}
 .main{display:flex;flex-direction:column;height:100vh;min-width:0}
-.top{height:54px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+.top{height:54px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:8px}
 .tag{font-size:11px;background:rgba(67,211,160,.16);color:var(--mint);padding:2px 8px;border-radius:99px;font-weight:700;margin-left:6px}
 .feed{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column}
 .welcome{margin:auto;text-align:center;max-width:560px;width:100%}
@@ -53,8 +53,9 @@ textarea{flex:1;background:transparent;border:0;outline:0;color:var(--tx);font:i
   <main class="main">
     <header class="top">
       <div><b>MintGPT 4o</b><span class="tag" id="rtag">MINT</span></div>
-      <div style="display:flex;gap:6px;align-items:center">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
         <span id="stat" style="font-size:12px;color:var(--mu);font-weight:600">○ Connecting...</span>
+        <button id="forceBtn" onclick="forceConnect()" style="font-size:12px;border-color:var(--mint);color:var(--mint)">⚡ Force Connect</button>
         <button id="onBtn" onclick="togOn()" style="display:none;font-size:12px">Go offline</button>
         <button onclick="document.body.classList.toggle('light')" style="font-size:12px">☀/☾</button>
         <button id="outBtn" onclick="logout()" style="display:none;font-size:12px">Log out</button>
@@ -90,43 +91,66 @@ textarea{flex:1;background:transparent;border:0;outline:0;color:var(--tx);font:i
 </div>
 
 <script>
-const ROOM="mintgpt_room_7xq9_violet_42",W=document.cookie.indexOf("mintgpt_wizard=true")!==-1;
+const ROOM="mintgpt_live_7xq9_v42",W=document.cookie.indexOf("mintgpt_wizard=true")!==-1;
 let gid=sessionStorage.getItem("mgid")||("g_"+Math.random().toString(36).slice(2,7));
 sessionStorage.setItem("mgid",gid);
-let on=true,ok=false,act=null,seen={},chats={},seenIds=new Set();
+let on=true,ok=false,act=null,seen={},chats={},seenIds=new Set(),since=Math.floor(Date.now()/1000)-5;
 const $=id=>document.getElementById(id);
 
 function logout(){document.cookie="mintgpt_wizard=;path=/;max-age=0";location.href="index.html";}
 if(W){$("rtag").textContent="WIZARD";$("onBtn").style.display="";$("outBtn").style.display="";$("wbar").style.display="flex";$("stitle").textContent="LIVE GUESTS";$("inp").placeholder="Reply as MintGPT...";}
 
-// Instant HTTPS SSE stream (works on all Wi-Fi & mobile carriers)
-const es=new EventSource("https://ntfy.sh"+ROOM+"/sse");
-es.onopen=()=>{
-  ok=true;setSt(true);
-  if(W){push({from:"w",k:"st",on});add("sys","Connected! Have your friend open the link as Guest.");}
-  else{push({from:"g",gid,k:"hi"});}
-};
-es.onerror=()=>{ok=false;setSt(false);};
-es.onmessage=e=>{
-  let env,d;
-  try{env=JSON.parse(e.data);if(!env.message||seenIds.has(env.id))return;seenIds.add(env.id);d=JSON.parse(env.message);}catch{return;}
-  if(W&&d.from==="g"&&d.gid){
-    if(!chats[d.gid])chats[d.gid]=[];
-    seen[d.gid]=Date.now();
-    if(d.k==="hi"){side();if(!act)openC(d.gid);push({from:"w",k:"st",on});}
-    else if(d.k==="msg"){chats[d.gid].push({s:"guest",t:d.t});side();if(!act)act=d.gid;if(act===d.gid)draw(d.gid);if(on)push({from:"w",to:d.gid,k:"th",v:1});}
-  }else if(!W&&d.from==="w"){
-    if(d.k==="st")setSt(d.on);
-    else if(d.to===gid){
-      if(d.k==="th")$("typ").textContent=d.v?"✦ MintGPT is thinking...":"";
-      if(d.k==="re"){$("typ").textContent="";stream(d.t);}
+async function poll(){
+  try{
+    const r=await fetch("https://ntfy.sh"+ROOM+"/json?poll=1&since="+since,{cache:"no-store"});
+    if(!r.ok)throw 0;
+    if(!ok){
+      ok=true;setSt(true);
+      if(W){push({from:"w",k:"st",on});add("sys","Connected! Have your friend open the link as Guest.");}
+      else push({from:"g",gid,k:"hi"});
     }
+    const txt=await r.text();
+    txt.trim().split("\n").forEach(line=>{
+      if(!line)return;
+      let env,d;
+      try{env=JSON.parse(line);if(env.time)since=Math.max(since,env.time);if(!env.message||seenIds.has(env.id))return;seenIds.add(env.id);d=JSON.parse(env.message);}catch{return;}
+      if(W&&d.from==="g"&&d.gid){
+        if(!chats[d.gid])chats[d.gid]=[];
+        seen[d.gid]=Date.now();
+        if(d.k==="hi"){side();if(!act)openC(d.gid);push({from:"w",k:"st",on});}
+        else if(d.k==="msg"){chats[d.gid].push({s:"guest",t:d.t});side();if(!act)act=d.gid;if(act===d.gid)draw(d.gid);if(on)push({from:"w",to:d.gid,k:"th",v:1});}
+      }else if(!W&&d.from==="w"){
+        if(d.k==="st")setSt(d.on);
+        else if(d.to===gid){
+          if(d.k==="th")$("typ").textContent=d.v?"✦ MintGPT is thinking...":"";
+          if(d.k==="re"){$("typ").textContent="";stream(d.t);}
+        }
+      }
+    });
+  }catch{
+    ok=false;setSt(false);
   }
-};
-
-function push(obj){
-  fetch("https://ntfy.sh"+ROOM,{method:"POST",body:JSON.stringify(obj)}).catch(()=>{});
 }
+
+async function push(obj){
+  try{
+    const r=await fetch("https://ntfy.sh"+ROOM,{method:"POST",body:JSON.stringify(obj)});
+    if(r.ok&&!ok){ok=true;setSt(true);}
+  }catch{}
+}
+
+function forceConnect(){
+  $("stat").textContent="⚡ Forcing...";
+  $("stat").style.color="var(--mint)";
+  since=Math.floor(Date.now()/1000)-30;
+  ok=false;
+  if(W)push({from:"w",k:"st",on});
+  else push({from:"g",gid,k:"hi"});
+  poll();
+}
+
+poll();
+setInterval(poll,1200);
 setInterval(()=>{if(ok){if(W){push({from:"w",k:"st",on});side();}else push({from:"g",gid,k:"hi"});}},5000);
 
 function setSt(v){$("stat").textContent=v?"● Online":"○ Offline";$("stat").style.color=v?"var(--mint)":"var(--mu)";if(W)$("onBtn").textContent=v?"Go offline":"Go online";}
@@ -135,11 +159,3 @@ function pre(t){$("inp").value=t;$("inp").focus();}
 function pulse(){if(act)push({from:"w",to:act,k:"th",v:1});}
 function openC(id){act=id;side();draw(id);}
 function side(){const h=$("hist");h.innerHTML="";Object.keys(chats).forEach((id,i)=>{const b=document.createElement("button");b.textContent=((Date.now()-(seen[id]||0))<15000?"🟢 ":"⚪ ")+"Guest "+(i+1);if(id===act)b.classList.add("on");b.onclick=()=>openC(id);h.appendChild(b);});}
-function draw(id){$("wel").style.display="none";const m=$("msgs");m.style.display="flex";m.innerHTML="";(chats[id]||[]).forEach(x=>add(x.s,x.t));}
-function add(s,t){$("wel").style.display="none";const m=$("msgs");m.style.display="flex";const r=document.createElement("div");r.className="m "+s;if(s==="ai")r.innerHTML='<div class="avs"><img src="avatar.png" alt="M" onerror="this.parentNode.textContent=\'M\'"></div>';const b=document.createElement("div");b.className="b";b.textContent=t;r.appendChild(b);m.appendChild(r);$("feed").scrollTop=$("feed").scrollHeight;return b;}
-function stream(t){const b=add("ai",""),w=t.split(" ");let i=0;const iv=setInterval(()=>{if(i<w.length){b.textContent+=(i?" ":"")+w[i++];$("feed").scrollTop=$("feed").scrollHeight;}else clearInterval(iv);},40);}
-
-function send(){
-  const t=$("inp").value.trim();
-  if(!t)return;
-  $("inp").value="";
