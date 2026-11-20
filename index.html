@@ -4,56 +4,140 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MintGPT</title>
+<script src="https://unpkg.com"></script>
 <style>
-  *{box-sizing:border-box}
-  body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#1a3329,#0d1713);color:#e1f4e9;font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:20px}
-  .gate-card{width:min(380px,100%);background:#16251f;border:1px solid #2b4a3d;border-radius:22px;padding:32px 26px;text-align:center;box-shadow:0 20px 55px rgba(0,0,0,.55)}
-  .avatar{width:80px;height:80px;border-radius:22px;margin:0 auto 14px;overflow:hidden;border:2px solid #43d3a0;background:#1b3b2e;display:grid;place-items:center;font-size:32px;font-weight:800;color:#43d3a0;box-shadow:0 0 25px rgba(67,211,160,.2)}
-  .avatar img{width:100%;height:100%;object-fit:cover;display:block}
-  h1{margin:0 0 6px;font-size:25px;font-weight:750;letter-spacing:-.5px;color:#e8faf0}
-  p{color:#94b5a5;margin:0 0 22px;font-size:14px}
-  input{width:100%;padding:13px 14px;border:1px solid #2e5243;border-radius:12px;font:inherit;margin-bottom:12px;background:#0f1a15;color:#e1f4e9;outline:none;transition:border-color .15s}
-  input:focus{border-color:#43d3a0}
-  button{cursor:pointer;border:0;border-radius:12px;padding:12px 16px;width:100%;font:inherit;font-weight:700;transition:filter .15s,background .15s}
-  .btn-primary{background:#43d3a0;color:#0f3325}
-  .btn-primary:hover{filter:brightness(1.07)}
-  .btn-guest{margin-top:10px;background:#21382f;color:#d6f2e3;border:1px solid #325748}
-  .btn-guest:hover{background:#29463b}
-  #error{color:#ff8f9c;font-size:13px;min-height:18px;margin-top:10px}
+:root{--bg:#101a17;--side:#0c1411;--card:#182722;--hov:#1f332c;--bd:#284237;--tx:#e1f4e9;--mu:#8aa899;--mint:#43d3a0;--ink:#0e3325;--code:#09110e}
+body.light{--bg:#fbfffc;--side:#f0faf4;--card:#fff;--hov:#e2f5ea;--bd:#d2ebe0;--tx:#173d30;--mu:#6d8c7f;--mint:#2bc48d;--ink:#fff;--code:#eef8f2}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px system-ui,-apple-system,sans-serif;height:100vh;overflow:hidden}
+
+/* Gate */
+#gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:radial-gradient(circle at top,#1a3329,#0d1713);padding:20px}
+.gcard{width:min(380px,100%);background:#16251f;border:1px solid #2b4a3d;border-radius:22px;padding:30px 24px;text-align:center;box-shadow:0 20px 55px rgba(0,0,0,.55)}
+.gav{width:76px;height:76px;border-radius:20px;margin:0 auto 14px;overflow:hidden;border:2px solid var(--mint);background:#1b3b2e;display:grid;place-items:center;font-size:30px;font-weight:800;color:var(--mint)}
+.gav img,.av img,.avs img{width:100%;height:100%;object-fit:cover;display:block}
+input{width:100%;padding:12px 14px;border:1px solid #2e5243;border-radius:12px;font:inherit;margin-bottom:10px;background:#0f1a15;color:#e1f4e9;outline:none}
+input:focus{border-color:var(--mint)}
+button{cursor:pointer;font:inherit;border-radius:11px;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:8px 12px;transition:border-color .15s}
+button:hover{border-color:var(--mint)}
+.btn-mint{width:100%;background:var(--mint);color:var(--ink);font-weight:750;border:0;padding:12px}
+.btn-sub{width:100%;margin-top:8px;background:#21382f;color:#d6f2e3}
+
+/* App Layout */
+.app{display:grid;grid-template-columns:260px 1fr;height:100vh}
+.side{background:var(--side);border-right:1px solid var(--bd);padding:12px;display:flex;flex-direction:column;gap:8px}
+.new{background:rgba(67,211,160,.15);font-weight:600;text-align:left}
+#hist{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+#hist button{border:0;background:transparent;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hist button.on{background:var(--hov);color:var(--mint);font-weight:700}
+.main{display:flex;flex-direction:column;height:100vh;min-width:0}
+.top{height:54px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:8px}
+.tag{font-size:11px;background:rgba(67,211,160,.16);color:var(--mint);padding:2px 8px;border-radius:99px;font-weight:700;margin-left:6px}
+.feed{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column}
+.welcome{margin:auto;text-align:center;max-width:560px;width:100%}
+.av{width:60px;height:60px;border-radius:18px;border:2px solid var(--mint);overflow:hidden;margin:0 auto 12px;display:grid;place-items:center;font-weight:800;color:var(--mint);background:#16382c}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}
+.cards button{text-align:left;padding:12px}
+.cards b{display:block;color:var(--mint);font-size:13px}
+.cards span{font-size:12px;color:var(--mu)}
+#msgs{width:min(760px,100%);margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.m{display:flex;gap:11px;align-items:flex-start;line-height:1.6}
+.m.guest{justify-content:flex-end}
+.m.guest .b{background:var(--hov);border:1px solid var(--bd);padding:10px 14px;border-radius:18px 18px 4px 18px;max-width:78%;white-space:pre-wrap;overflow-wrap:anywhere}
+.m.ai .b{flex:1;overflow-wrap:anywhere;padding-top:2px}
+.m.sys{justify-content:center}.m.sys .b{font-size:12px;color:var(--mu);background:var(--side);padding:5px 12px;border-radius:99px;border:1px solid var(--bd)}
+.avs{width:32px;height:32px;border-radius:10px;border:1.5px solid var(--mint);overflow:hidden;flex-shrink:0;display:grid;place-items:center;font-size:12px;font-weight:800;color:var(--mint);background:#16382c}
+.b img{max-width:260px;border-radius:12px;display:block;margin-top:6px;border:1px solid var(--bd)}
+pre{background:var(--code);border:1px solid var(--bd);border-radius:12px;padding:12px;overflow-x:auto;position:relative;margin:8px 0;font:13px/1.5 ui-monospace,Consolas,monospace}
+.copy-btn{position:absolute;top:6px;right:6px;font-size:11px;padding:3px 8px;border-radius:6px;background:var(--card)}
+code{background:var(--code);padding:2px 5px;border-radius:5px;font:13px ui-monospace,Consolas,monospace}
+pre code{background:transparent;padding:0}
+.foot{width:min(760px,100%);margin:0 auto;padding:0 14px 14px}
+.wbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}.wbar button{font-size:12px;padding:5px 9px}
+#typ{min-height:18px;font-size:12px;color:var(--mint);margin-bottom:4px;font-weight:600}
+.box{background:var(--card);border:1px solid var(--bd);border-radius:22px;padding:8px 10px 8px 12px;display:flex;align-items:flex-end;gap:8px}
+.box:focus-within{border-color:var(--mint)}
+.att{background:transparent;border:0;color:var(--mu);font-size:18px;padding:4px 6px}
+textarea{flex:1;background:transparent;border:0;outline:0;color:var(--tx);font:inherit;resize:none;min-height:24px;max-height:130px;padding:4px 0}
+.send{width:34px;height:34px;border-radius:50%;border:0;background:var(--mint);color:var(--ink);font-weight:800;padding:0;flex-shrink:0}
+@media(max-width:700px){.app{grid-template-columns:1fr}.side{display:none}.cards{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-  <div class="gate-card">
-    <div class="avatar"><img src="avatar.png" alt="M" onerror="this.parentNode.textContent='M'"></div>
-    <h1>Welcome to MintGPT</h1>
-    <p>A little more refreshing. Log in or continue as guest.</p>
-    <input id="code" type="password" placeholder="Wizard passcode" autocomplete="off" onkeydown="if(event.key==='Enter')loginWizard()">
-    <button type="button" class="btn-primary" onclick="loginWizard()">Enter MintGPT</button>
-    <button type="button" class="btn-guest" onclick="enterGuest()">Continue as Guest</button>
-    <div id="error"></div>
+
+<div id="gate">
+  <div class="gcard">
+    <div class="gav"><img src="avatar.png" alt="M" onerror="this.parentNode.textContent='M'"></div>
+    <h1 style="margin:0 0 6px;font-size:24px">Welcome to MintGPT</h1>
+    <p style="color:var(--mu);margin:0 0 18px;font-size:14px">Enter Wizard passcode or continue as guest.</p>
+    <input id="code" type="password" placeholder="Wizard passcode" autocomplete="off" onkeydown="if(event.key==='Enter')unlockWizard()">
+    <button type="button" class="btn-mint" onclick="unlockWizard()">Log in as Wizard</button>
+    <button type="button" class="btn-sub" onclick="enterGuest()">Continue as Guest</button>
+    <div id="gerr" style="color:#ff8f9c;font-size:13px;min-height:18px;margin-top:8px"></div>
   </div>
+</div>
+
+<div class="app">
+  <aside class="side">
+    <button type="button" class="new" onclick="resetChat()">✦ New mint chat</button>
+    <div style="font-size:11px;color:var(--mu);font-weight:700;padding:4px" id="stitle">CHATS</div>
+    <div id="hist"></div>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <div><b id="mname">MintGPT 4o</b><span class="tag" id="rtag">MINT</span></div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <span id="stat" style="font-size:12px;color:var(--mu);font-weight:600">○ Offline</span>
+        <button type="button" id="copyLinkBtn" onclick="copyInviteLink()" style="display:none;font-size:12px;border-color:var(--mint);color:var(--mint)">🔗 Copy Guest Link</button>
+        <button type="button" id="onBtn" onclick="togOn()" style="display:none;font-size:12px">Go offline</button>
+        <button type="button" onclick="document.body.classList.toggle('light')" style="font-size:12px">☀/☾</button>
+      </div>
+    </header>
+
+    <div class="feed" id="feed">
+      <div class="welcome" id="wel">
+        <div class="av"><img src="avatar.png" alt="M" onerror="this.parentNode.textContent='M'"></div>
+        <h2 style="margin:0 0 6px">What's on your mind?</h2>
+        <div style="color:var(--mu);font-size:14px">Same helpful AI energy. A fresh minty look.</div>
+        <div class="cards">
+          <button type="button" onclick="ask('Help me debug a Minecraft plugin')"><b>✦ Debug code</b><span>Fix a plugin or datapack</span></button>
+          <button type="button" onclick="ask('Give me 3 YouTube video ideas')"><b>✦ Brainstorm</b><span>Fresh video concepts</span></button>
+          <button type="button" onclick="ask('Explain quantum computers simply')"><b>✦ Explain</b><span>Clear, simple breakdowns</span></button>
+          <button type="button" onclick="ask('Write a short story about a green slime')"><b>✦ Write</b><span>Stories & character lore</span></button>
+        </div>
+      </div>
+      <div id="msgs" style="display:none"></div>
+    </div>
+
+    <div class="foot">
+      <div class="wbar" id="wbar" style="display:none">
+        <button type="button" onclick="pre('Thinking through your request...')">⚡ Thinking</button>
+        <button type="button" onclick="pre('Here is what I found:\n\n')">⚡ Breakdown</button>
+        <button type="button" onclick="pre('```java\n// Code here\n```')">⚡ Code Block</button>
+        <button type="button" onclick="pulse()">⏳ Pulse Dots</button>
+      </div>
+      <div id="typ"></div>
+      <div class="box">
+        <button type="button" class="att" onclick="$('imgFile').click()" title="Send Image">📎</button>
+        <input type="file" id="imgFile" accept="image/*" style="display:none" onchange="sendImage(event)">
+        <textarea id="inp" rows="1" placeholder="Message MintGPT..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}" oninput="this.style.height='24px';this.style.height=Math.min(this.scrollHeight,130)+'px'"></textarea>
+        <button type="button" class="send" onclick="send()">↑</button>
+      </div>
+    </div>
+  </main>
+</div>
 
 <script>
-  const PASSCODE = "Mint-7XQ9-Violet#42";
+const PASSCODE = "Mint-7XQ9-Violet#42";
+const FIXED_ID = "mintgpt-lunar-7xq9-42";
+const $ = id => document.getElementById(id);
 
-  if (document.cookie.indexOf("mintgpt_wizard=true") !== -1) {
-    window.location.replace("app.html");
-  }
+let W = false, isOnline = true, peer = null, conns = {}, hostConn = null, act = null, chats = {};
+let localBus = null;
+try { localBus = new BroadcastChannel("mintgpt_local_bus"); } catch (e) {}
 
-  function loginWizard() {
-    const val = document.getElementById("code").value.trim();
-    if (val === PASSCODE) {
-      document.cookie = "mintgpt_wizard=true; path=/; max-age=86400; SameSite=Lax";
-      window.location.href = "app.html";
-    } else {
-      document.getElementById("error").textContent = "Invalid Wizard passcode.";
-    }
-  }
+// Check if URL has ?room=ID from Wizard's Copy Guest Link
+const urlParams = new URLSearchParams(window.location.search);
+const targetHostId = urlParams.get("room") || FIXED_ID;
 
-  function enterGuest() {
-    document.cookie = "mintgpt_wizard=; path=/; max-age=0; SameSite=Lax";
-    window.location.href = "app.html";
-  }
-</script>
-</body>
-</html>
