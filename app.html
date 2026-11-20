@@ -81,54 +81,65 @@ textarea{flex:1;background:transparent;border:0;outline:0;color:var(--tx);font:i
         <button onclick="pulse()">⏳ Pulse Dots</button>
       </div>
       <div id="typ"></div>
-      <form class="box" onsubmit="send(event)">
+      <form class="box" onsubmit="return false;">
         <textarea id="inp" rows="1" placeholder="Message MintGPT..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}" oninput="this.style.height='24px';this.style.height=Math.min(this.scrollHeight,130)+'px'"></textarea>
-        <button type="submit" class="send">↑</button>
+        <button type="button" class="send" onclick="send()">↑</button>
       </form>
     </div>
   </main>
 </div>
 
-<script src="https://unpkg.com"></script>
 <script>
-const P="mintgpt/live/7xq9-42/",W=document.cookie.indexOf("mintgpt_wizard=true")!==-1;
+const ROOM="mintgpt_room_7xq9_violet_42",W=document.cookie.indexOf("mintgpt_wizard=true")!==-1;
 let gid=sessionStorage.getItem("mgid")||("g_"+Math.random().toString(36).slice(2,7));
 sessionStorage.setItem("mgid",gid);
-let on=true,cl=null,ok=false,act=null,seen={},chats={};
+let on=true,ok=false,act=null,seen={},chats={},seenIds=new Set();
 const $=id=>document.getElementById(id);
 
 function logout(){document.cookie="mintgpt_wizard=;path=/;max-age=0";location.href="index.html";}
 if(W){$("rtag").textContent="WIZARD";$("onBtn").style.display="";$("outBtn").style.display="";$("wbar").style.display="flex";$("stitle").textContent="LIVE GUESTS";$("inp").placeholder="Reply as MintGPT...";}
 
-if(typeof mqtt!=="undefined"){
-  cl=mqtt.connect("wss://://hivemq.com",{clientId:"mg_"+Math.random().toString(16).slice(2,9),reconnectPeriod:2000});
-  cl.on("connect",()=>{
-    ok=true;setSt(true);
-    if(W){cl.subscribe(P+"w/#");pub("s",{on});add("sys","Live relay ready. Waiting for guests...");}
-    else{cl.subscribe(P+"s");cl.subscribe(P+"g/"+gid);pub("w/ping",{gid});}
-  });
-  cl.on("message",(t,b)=>{
-    let d;try{d=JSON.parse(b.toString());}catch{return;}
-    if(W&&d.gid){
-      if(!chats[d.gid])chats[d.gid]=[];
-      seen[d.gid]=Date.now();
-      if(t.endsWith("/ping")){side();if(!act)openC(d.gid);pub("s",{on});}
-      else if(t.endsWith("/msg")){chats[d.gid].push({s:"guest",t:d.t});side();if(!act)act=d.gid;if(act===d.gid)draw(d.gid);if(on)pub("g/"+d.gid,{k:"th",v:1});}
-    }else if(!W){
-      if(t===P+"s")setSt(d.on);
-      else if(t===P+"g/"+gid){if(d.k==="th")$("typ").textContent=d.v?"✦ MintGPT is thinking...":"";if(d.k==="re"){$("typ").textContent="";stream(d.t);}}
+// Instant HTTPS SSE stream (works on all Wi-Fi & mobile carriers)
+const es=new EventSource("https://ntfy.sh"+ROOM+"/sse");
+es.onopen=()=>{
+  ok=true;setSt(true);
+  if(W){push({from:"w",k:"st",on});add("sys","Connected! Have your friend open the link as Guest.");}
+  else{push({from:"g",gid,k:"hi"});}
+};
+es.onerror=()=>{ok=false;setSt(false);};
+es.onmessage=e=>{
+  let env,d;
+  try{env=JSON.parse(e.data);if(!env.message||seenIds.has(env.id))return;seenIds.add(env.id);d=JSON.parse(env.message);}catch{return;}
+  if(W&&d.from==="g"&&d.gid){
+    if(!chats[d.gid])chats[d.gid]=[];
+    seen[d.gid]=Date.now();
+    if(d.k==="hi"){side();if(!act)openC(d.gid);push({from:"w",k:"st",on});}
+    else if(d.k==="msg"){chats[d.gid].push({s:"guest",t:d.t});side();if(!act)act=d.gid;if(act===d.gid)draw(d.gid);if(on)push({from:"w",to:d.gid,k:"th",v:1});}
+  }else if(!W&&d.from==="w"){
+    if(d.k==="st")setSt(d.on);
+    else if(d.to===gid){
+      if(d.k==="th")$("typ").textContent=d.v?"✦ MintGPT is thinking...":"";
+      if(d.k==="re"){$("typ").textContent="";stream(d.t);}
     }
-  });
-  cl.on("offline",()=>{ok=false;setSt(false);});
+  }
+};
+
+function push(obj){
+  fetch("https://ntfy.sh"+ROOM,{method:"POST",body:JSON.stringify(obj)}).catch(()=>{});
 }
-setInterval(()=>{if(ok){if(W){pub("s",{on});side();}else pub("w/ping",{gid});}},4000);
-function pub(s,o){if(cl&&ok)cl.publish(P+s,JSON.stringify(o));}
+setInterval(()=>{if(ok){if(W){push({from:"w",k:"st",on});side();}else push({from:"g",gid,k:"hi"});}},5000);
+
 function setSt(v){$("stat").textContent=v?"● Online":"○ Offline";$("stat").style.color=v?"var(--mint)":"var(--mu)";if(W)$("onBtn").textContent=v?"Go offline":"Go online";}
-function togOn(){on=!on;setSt(on);pub("s",{on});}
+function togOn(){on=!on;setSt(on);push({from:"w",k:"st",on});}
 function pre(t){$("inp").value=t;$("inp").focus();}
-function pulse(){if(act)pub("g/"+act,{k:"th",v:1});}
+function pulse(){if(act)push({from:"w",to:act,k:"th",v:1});}
 function openC(id){act=id;side();draw(id);}
-function side(){const h=$("hist");h.innerHTML="";Object.keys(chats).forEach((id,i)=>{const b=document.createElement("button");b.textContent=((Date.now()-(seen[id]||0))<12000?"🟢 ":"⚪ ")+"Guest "+(i+1);if(id===act)b.classList.add("on");b.onclick=()=>openC(id);h.appendChild(b);});}
+function side(){const h=$("hist");h.innerHTML="";Object.keys(chats).forEach((id,i)=>{const b=document.createElement("button");b.textContent=((Date.now()-(seen[id]||0))<15000?"🟢 ":"⚪ ")+"Guest "+(i+1);if(id===act)b.classList.add("on");b.onclick=()=>openC(id);h.appendChild(b);});}
 function draw(id){$("wel").style.display="none";const m=$("msgs");m.style.display="flex";m.innerHTML="";(chats[id]||[]).forEach(x=>add(x.s,x.t));}
 function add(s,t){$("wel").style.display="none";const m=$("msgs");m.style.display="flex";const r=document.createElement("div");r.className="m "+s;if(s==="ai")r.innerHTML='<div class="avs"><img src="avatar.png" alt="M" onerror="this.parentNode.textContent=\'M\'"></div>';const b=document.createElement("div");b.className="b";b.textContent=t;r.appendChild(b);m.appendChild(r);$("feed").scrollTop=$("feed").scrollHeight;return b;}
 function stream(t){const b=add("ai",""),w=t.split(" ");let i=0;const iv=setInterval(()=>{if(i<w.length){b.textContent+=(i?" ":"")+w[i++];$("feed").scrollTop=$("feed").scrollHeight;}else clearInterval(iv);},40);}
+
+function send(){
+  const t=$("inp").value.trim();
+  if(!t)return;
+  $("inp").value="";
