@@ -9,8 +9,6 @@
 body.light{--bg:#fbfffc;--side:#f0faf4;--card:#fff;--hov:#e2f5ea;--bd:#d2ebe0;--tx:#173d30;--mu:#6d8c7f;--mint:#2bc48d;--ink:#fff;--code:#eef8f2}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px system-ui,-apple-system,sans-serif;height:100vh;overflow:hidden}
-
-/* Gate */
 #gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:radial-gradient(circle at top,#1a3329,#0d1713);padding:20px}
 .gcard{width:min(380px,100%);background:#16251f;border:1px solid #2b4a3d;border-radius:22px;padding:30px 24px;text-align:center;box-shadow:0 20px 55px rgba(0,0,0,.55)}
 .gav{width:76px;height:76px;border-radius:20px;margin:0 auto 14px;overflow:hidden;border:2px solid var(--mint);background:#1b3b2e;display:grid;place-items:center;font-size:30px;font-weight:800;color:var(--mint)}
@@ -21,8 +19,6 @@ button{cursor:pointer;font:inherit;border-radius:11px;border:1px solid var(--bd)
 button:hover{border-color:var(--mint)}
 .btn-mint{width:100%;background:var(--mint);color:var(--ink);font-weight:750;border:0;padding:12px}
 .btn-sub{width:100%;margin-top:8px;background:#21382f;color:#d6f2e3}
-
-/* App Layout */
 .app{display:grid;grid-template-columns:260px 1fr;height:100vh}
 .side{background:var(--side);border-right:1px solid var(--bd);padding:12px;display:flex;flex-direction:column;gap:8px}
 .new{background:rgba(67,211,160,.15);font-weight:600;text-align:left}
@@ -144,3 +140,5 @@ if (urlParams.get("room")) {
 }
 
 function unlockWizard() {
+  if ($("code").value.trim() === PASSCODE) {
+    W = true;
