@@ -46,19 +46,19 @@ textarea{flex:1;background:transparent;border:0;outline:0;color:var(--tx);font:i
 <body>
 <div class="app">
   <aside class="side">
-    <button class="new" onclick="resetChat()">✦ New mint chat</button>
+    <button type="button" class="new" onclick="resetChat()">✦ New mint chat</button>
     <div style="font-size:11px;color:var(--mu);font-weight:700;padding:4px" id="stitle">CHATS</div>
     <div id="hist"></div>
   </aside>
   <main class="main">
     <header class="top">
-      <div><b>MintGPT 4o</b><span class="tag" id="rtag">MINT</span></div>
+      <div><b>MintGPT 4o</b><span class="tag" id="rtag">MINT v2.4</span></div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
         <span id="stat" style="font-size:12px;color:var(--mu);font-weight:600">○ Connecting...</span>
-        <button id="forceBtn" onclick="forceConnect()" style="font-size:12px;border-color:var(--mint);color:var(--mint)">⚡ Force Connect</button>
-        <button id="onBtn" onclick="togOn()" style="display:none;font-size:12px">Go offline</button>
-        <button onclick="document.body.classList.toggle('light')" style="font-size:12px">☀/☾</button>
-        <button id="outBtn" onclick="logout()" style="display:none;font-size:12px">Log out</button>
+        <button type="button" id="forceBtn" onclick="forceConnect()" style="font-size:12px;border-color:var(--mint);color:var(--mint)">⚡ Force Connect</button>
+        <button type="button" id="onBtn" onclick="togOn()" style="display:none;font-size:12px">Go offline</button>
+        <button type="button" onclick="document.body.classList.toggle('light')" style="font-size:12px">☀/☾</button>
+        <button type="button" id="outBtn" onclick="logout()" style="display:none;font-size:12px">Log out</button>
       </div>
     </header>
     <div class="feed" id="feed">
@@ -67,95 +67,126 @@ textarea{flex:1;background:transparent;border:0;outline:0;color:var(--tx);font:i
         <h2 style="margin:0 0 6px">What's on your mind?</h2>
         <div style="color:var(--mu);font-size:14px">Same helpful AI energy. A fresh minty look.</div>
         <div class="cards">
-          <button onclick="ask('Help me debug a Minecraft plugin')"><b>✦ Debug code</b><span>Fix a plugin or datapack</span></button>
-          <button onclick="ask('Give me 3 YouTube video ideas')"><b>✦ Brainstorm</b><span>Fresh video concepts</span></button>
-          <button onclick="ask('Explain quantum computers simply')"><b>✦ Explain</b><span>Clear, simple breakdowns</span></button>
-          <button onclick="ask('Write a short story about a green slime')"><b>✦ Write</b><span>Stories & character lore</span></button>
+          <button type="button" onclick="ask('Help me debug a Minecraft plugin')"><b>✦ Debug code</b><span>Fix a plugin or datapack</span></button>
+          <button type="button" onclick="ask('Give me 3 YouTube video ideas')"><b>✦ Brainstorm</b><span>Fresh video concepts</span></button>
+          <button type="button" onclick="ask('Explain quantum computers simply')"><b>✦ Explain</b><span>Clear, simple breakdowns</span></button>
+          <button type="button" onclick="ask('Write a short story about a green slime')"><b>✦ Write</b><span>Stories & character lore</span></button>
         </div>
       </div>
       <div id="msgs" style="display:none"></div>
     </div>
     <div class="foot">
       <div class="wbar" id="wbar" style="display:none">
-        <button onclick="pre('Thinking through your request...')">⚡ Thinking</button>
-        <button onclick="pre('Here is what I found:')">⚡ Breakdown</button>
-        <button onclick="pulse()">⏳ Pulse Dots</button>
+        <button type="button" onclick="pre('Thinking through your request...')">⚡ Thinking</button>
+        <button type="button" onclick="pre('Here is what I found:')">⚡ Breakdown</button>
+        <button type="button" onclick="pulse()">⏳ Pulse Dots</button>
       </div>
       <div id="typ"></div>
-      <form class="box" onsubmit="return false;">
+      <div class="box">
         <textarea id="inp" rows="1" placeholder="Message MintGPT..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}" oninput="this.style.height='24px';this.style.height=Math.min(this.scrollHeight,130)+'px'"></textarea>
         <button type="button" class="send" onclick="send()">↑</button>
-      </form>
+      </div>
     </div>
   </main>
 </div>
 
 <script>
-const ROOM="mintgpt_live_7xq9_v42",W=document.cookie.indexOf("mintgpt_wizard=true")!==-1;
-let gid=sessionStorage.getItem("mgid")||("g_"+Math.random().toString(36).slice(2,7));
-sessionStorage.setItem("mgid",gid);
-let on=true,ok=false,act=null,seen={},chats={},seenIds=new Set(),since=Math.floor(Date.now()/1000)-5;
-const $=id=>document.getElementById(id);
+const ROOM = "mintgpt_live_7xq9_v42";
+const W = document.cookie.indexOf("mintgpt_wizard=true") !== -1;
+let gid = sessionStorage.getItem("mgid") || ("g_" + Math.random().toString(36).slice(2, 7));
+sessionStorage.setItem("mgid", gid);
 
-function logout(){document.cookie="mintgpt_wizard=;path=/;max-age=0";location.href="index.html";}
-if(W){$("rtag").textContent="WIZARD";$("onBtn").style.display="";$("outBtn").style.display="";$("wbar").style.display="flex";$("stitle").textContent="LIVE GUESTS";$("inp").placeholder="Reply as MintGPT...";}
+let on = true, ok = false, act = null, seen = {}, chats = {}, seenIds = new Set();
+let since = Math.floor(Date.now() / 1000) - 10;
 
-async function poll(){
-  try{
-    const r=await fetch("https://ntfy.sh"+ROOM+"/json?poll=1&since="+since,{cache:"no-store"});
-    if(!r.ok)throw 0;
-    if(!ok){
-      ok=true;setSt(true);
-      if(W){push({from:"w",k:"st",on});add("sys","Connected! Have your friend open the link as Guest.");}
-      else push({from:"g",gid,k:"hi"});
+function $(id) { return document.getElementById(id); }
+
+function logout() {
+  document.cookie = "mintgpt_wizard=;path=/;max-age=0";
+  location.href = "index.html";
+}
+
+if (W) {
+  $("rtag").textContent = "WIZARD v2.4";
+  $("onBtn").style.display = "";
+  $("outBtn").style.display = "";
+  $("wbar").style.display = "flex";
+  $("stitle").textContent = "LIVE GUESTS";
+  $("inp").placeholder = "Reply as MintGPT...";
+}
+
+async function poll() {
+  try {
+    const r = await fetch("https://ntfy.sh" + ROOM + "/json?poll=1&since=" + since, { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    if (!ok) {
+      ok = true;
+      setSt(true);
+      if (W) {
+        push({ from: "w", k: "st", on: on });
+        add("sys", "Connected! Have your friend open the link as Guest.");
+      } else {
+        push({ from: "g", gid: gid, k: "hi" });
+      }
     }
-    const txt=await r.text();
-    txt.trim().split("\n").forEach(line=>{
-      if(!line)return;
-      let env,d;
-      try{env=JSON.parse(line);if(env.time)since=Math.max(since,env.time);if(!env.message||seenIds.has(env.id))return;seenIds.add(env.id);d=JSON.parse(env.message);}catch{return;}
-      if(W&&d.from==="g"&&d.gid){
-        if(!chats[d.gid])chats[d.gid]=[];
-        seen[d.gid]=Date.now();
-        if(d.k==="hi"){side();if(!act)openC(d.gid);push({from:"w",k:"st",on});}
-        else if(d.k==="msg"){chats[d.gid].push({s:"guest",t:d.t});side();if(!act)act=d.gid;if(act===d.gid)draw(d.gid);if(on)push({from:"w",to:d.gid,k:"th",v:1});}
-      }else if(!W&&d.from==="w"){
-        if(d.k==="st")setSt(d.on);
-        else if(d.to===gid){
-          if(d.k==="th")$("typ").textContent=d.v?"✦ MintGPT is thinking...":"";
-          if(d.k==="re"){$("typ").textContent="";stream(d.t);}
+    const txt = await r.text();
+    const lines = txt.trim().split("\n");
+    for (let i = 0; i < lines.length; i++) {
+      if (!lines[i]) continue;
+      let env, d;
+      try {
+        env = JSON.parse(lines[i]);
+        if (env.time) since = Math.max(since, env.time);
+        if (!env.message || seenIds.has(env.id)) continue;
+        seenIds.add(env.id);
+        d = JSON.parse(env.message);
+      } catch (e) { continue; }
+
+      if (W && d.from === "g" && d.gid) {
+        if (!chats[d.gid]) chats[d.gid] = [];
+        seen[d.gid] = Date.now();
+        if (d.k === "hi") {
+          side();
+          if (!act) openC(d.gid);
+          push({ from: "w", k: "st", on: on });
+        } else if (d.k === "msg") {
+          chats[d.gid].push({ s: "guest", t: d.t });
+          side();
+          if (!act) act = d.gid;
+          if (act === d.gid) draw(d.gid);
+          if (on) push({ from: "w", to: d.gid, k: "th", v: 1 });
+        }
+      } else if (!W && d.from === "w") {
+        if (d.k === "st") setSt(d.on);
+        else if (d.to === gid) {
+          if (d.k === "th") $("typ").textContent = d.v ? "✦ MintGPT is thinking..." : "";
+          if (d.k === "re") { $("typ").textContent = ""; stream(d.t); }
         }
       }
-    });
-  }catch{
-    ok=false;setSt(false);
+    }
+  } catch (err) {
+    ok = false;
+    $("stat").textContent = "○ Retrying...";
+    $("stat").style.color = "var(--mu)";
   }
 }
 
-async function push(obj){
-  try{
-    const r=await fetch("https://ntfy.sh"+ROOM,{method:"POST",body:JSON.stringify(obj)});
-    if(r.ok&&!ok){ok=true;setSt(true);}
-  }catch{}
+async function push(obj) {
+  try {
+    const r = await fetch("https://ntfy.sh", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic: ROOM, message: JSON.stringify(obj) })
+    });
+    if (r.ok && !ok) {
+      ok = true;
+      setSt(true);
+    }
+  } catch (e) {}
 }
 
-function forceConnect(){
-  $("stat").textContent="⚡ Forcing...";
-  $("stat").style.color="var(--mint)";
-  since=Math.floor(Date.now()/1000)-30;
-  ok=false;
-  if(W)push({from:"w",k:"st",on});
-  else push({from:"g",gid,k:"hi"});
-  poll();
-}
-
-poll();
-setInterval(poll,1200);
-setInterval(()=>{if(ok){if(W){push({from:"w",k:"st",on});side();}else push({from:"g",gid,k:"hi"});}},5000);
-
-function setSt(v){$("stat").textContent=v?"● Online":"○ Offline";$("stat").style.color=v?"var(--mint)":"var(--mu)";if(W)$("onBtn").textContent=v?"Go offline":"Go online";}
-function togOn(){on=!on;setSt(on);push({from:"w",k:"st",on});}
-function pre(t){$("inp").value=t;$("inp").focus();}
-function pulse(){if(act)push({from:"w",to:act,k:"th",v:1});}
-function openC(id){act=id;side();draw(id);}
-function side(){const h=$("hist");h.innerHTML="";Object.keys(chats).forEach((id,i)=>{const b=document.createElement("button");b.textContent=((Date.now()-(seen[id]||0))<15000?"🟢 ":"⚪ ")+"Guest "+(i+1);if(id===act)b.classList.add("on");b.onclick=()=>openC(id);h.appendChild(b);});}
+function forceConnect() {
+  $("stat").textContent = "⚡ Connecting...";
+  $("stat").style.color = "var(--mint)";
+  since = Math.floor(Date.now() / 1000) - 60;
+  ok = false;
