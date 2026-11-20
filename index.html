@@ -65,16 +65,16 @@ textarea{flex:1;background:transparent;border:0;outline:0;color:var(--tx);font:i
     <div class="gav"><img src="avatar.png" alt="M" onerror="this.parentNode.textContent='M'"></div>
     <h1 style="margin:0 0 6px;font-size:24px">Welcome to MintGPT</h1>
     <p style="color:var(--mu);margin:0 0 18px;font-size:14px">Enter Wizard passcode or continue as guest.</p>
-    <input id="code" type="password" placeholder="Wizard passcode" autocomplete="off" onkeydown="if(event.key==='Enter')unlockWizard()">
-    <button type="button" class="btn-mint" onclick="unlockWizard()">Log in as Wizard</button>
-    <button type="button" class="btn-sub" onclick="enterGuest()">Continue as Guest</button>
+    <input id="code" type="password" placeholder="Wizard passcode" autocomplete="off">
+    <button type="button" id="btnWiz" class="btn-mint">Log in as Wizard</button>
+    <button type="button" id="btnGst" class="btn-sub">Continue as Guest</button>
     <div id="gerr" style="color:#ff8f9c;font-size:13px;min-height:18px;margin-top:8px"></div>
   </div>
 </div>
 
 <div class="app">
   <aside class="side">
-    <button type="button" class="new" onclick="resetChat()">✦ New mint chat</button>
+    <button type="button" class="new" id="btnNew">✦ New mint chat</button>
     <div style="font-size:11px;color:var(--mu);font-weight:700;padding:4px" id="stitle">CHATS</div>
     <div id="hist"></div>
   </aside>
@@ -84,9 +84,9 @@ textarea{flex:1;background:transparent;border:0;outline:0;color:var(--tx);font:i
       <div><b id="mname">MintGPT 4o</b><span class="tag" id="rtag">MINT</span></div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
         <span id="stat" style="font-size:12px;color:var(--mu);font-weight:600">○ Offline</span>
-        <button type="button" id="copyLinkBtn" onclick="copyInviteLink()" style="display:none;font-size:12px;border-color:var(--mint);color:var(--mint)">🔗 Copy Guest Link</button>
-        <button type="button" id="onBtn" onclick="togOn()" style="display:none;font-size:12px">Go offline</button>
-        <button type="button" onclick="document.body.classList.toggle('light')" style="font-size:12px">☀/☾</button>
+        <button type="button" id="copyLinkBtn" style="display:none;font-size:12px;border-color:var(--mint);color:var(--mint)">🔗 Copy Guest Link</button>
+        <button type="button" id="onBtn" style="display:none;font-size:12px">Go offline</button>
+        <button type="button" id="themeBtn" style="font-size:12px">☀/☾</button>
       </div>
     </header>
 
@@ -95,11 +95,11 @@ textarea{flex:1;background:transparent;border:0;outline:0;color:var(--tx);font:i
         <div class="av"><img src="avatar.png" alt="M" onerror="this.parentNode.textContent='M'"></div>
         <h2 style="margin:0 0 6px">What's on your mind?</h2>
         <div style="color:var(--mu);font-size:14px">Same helpful AI energy. A fresh minty look.</div>
-        <div class="cards">
-          <button type="button" onclick="ask('Help me debug a Minecraft plugin')"><b>✦ Debug code</b><span>Fix a plugin or datapack</span></button>
-          <button type="button" onclick="ask('Give me 3 YouTube video ideas')"><b>✦ Brainstorm</b><span>Fresh video concepts</span></button>
-          <button type="button" onclick="ask('Explain quantum computers simply')"><b>✦ Explain</b><span>Clear, simple breakdowns</span></button>
-          <button type="button" onclick="ask('Write a short story about a green slime')"><b>✦ Write</b><span>Stories & character lore</span></button>
+        <div class="cards" id="cards">
+          <button type="button" data-q="Help me debug a Minecraft plugin"><b>✦ Debug code</b><span>Fix a plugin or datapack</span></button>
+          <button type="button" data-q="Give me 3 YouTube video ideas"><b>✦ Brainstorm</b><span>Fresh video concepts</span></button>
+          <button type="button" data-q="Explain quantum computers simply"><b>✦ Explain</b><span>Clear, simple breakdowns</span></button>
+          <button type="button" data-q="Write a short story about a green slime"><b>✦ Write</b><span>Stories & character lore</span></button>
         </div>
       </div>
       <div id="msgs" style="display:none"></div>
@@ -107,17 +107,16 @@ textarea{flex:1;background:transparent;border:0;outline:0;color:var(--tx);font:i
 
     <div class="foot">
       <div class="wbar" id="wbar" style="display:none">
-        <button type="button" onclick="pre('Thinking through your request...')">⚡ Thinking</button>
-        <button type="button" onclick="pre('Here is what I found:\n\n')">⚡ Breakdown</button>
-        <button type="button" onclick="pre('```java\n// Code here\n```')">⚡ Code Block</button>
-        <button type="button" onclick="pulse()">⏳ Pulse Dots</button>
+        <button type="button" data-p="Thinking through your request...">⚡ Thinking</button>
+        <button type="button" data-p="Here is what I found:">⚡ Breakdown</button>
+        <button type="button" id="pulseBtn">⏳ Pulse Dots</button>
       </div>
       <div id="typ"></div>
       <div class="box">
-        <button type="button" class="att" onclick="$('imgFile').click()" title="Send Image">📎</button>
-        <input type="file" id="imgFile" accept="image/*" style="display:none" onchange="sendImage(event)">
-        <textarea id="inp" rows="1" placeholder="Message MintGPT..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}" oninput="this.style.height='24px';this.style.height=Math.min(this.scrollHeight,130)+'px'"></textarea>
-        <button type="button" class="send" onclick="send()">↑</button>
+        <button type="button" id="attBtn" class="att" title="Send Image">📎</button>
+        <input type="file" id="imgFile" accept="image/*" style="display:none">
+        <textarea id="inp" rows="1" placeholder="Message MintGPT..."></textarea>
+        <button type="button" id="sendBtn" class="send">↑</button>
       </div>
     </div>
   </main>
@@ -135,10 +134,15 @@ try { localBus = new BroadcastChannel("mintgpt_local_bus"); } catch (e) {}
 const urlParams = new URLSearchParams(window.location.search);
 const targetHostId = urlParams.get("room") || FIXED_ID;
 
-if (urlParams.get("room")) {
-  enterGuest();
-}
-
-function unlockWizard() {
-  if ($("code").value.trim() === PASSCODE) {
-    W = true;
+$("btnWiz").onclick = unlockWizard;
+$("btnGst").onclick = enterGuest;
+$("code").onkeydown = function(e) { if (e.key === "Enter") unlockWizard(); };
+$("btnNew").onclick = resetChat;
+$("copyLinkBtn").onclick = copyInviteLink;
+$("onBtn").onclick = togOn;
+$("themeBtn").onclick = function() { document.body.classList.toggle("light"); };
+$("pulseBtn").onclick = function() { if (act) sendToGuest(act, { type: "thinking", v: true }); };
+$("attBtn").onclick = function() { $("imgFile").click(); };
+$("imgFile").onchange = sendImage;
+$("sendBtn").onclick = send;
+$("inp").onkeydown = function(e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
